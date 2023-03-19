@@ -57,7 +57,15 @@ peoplerows = people.find_all("tr")
 
 print(peoplerows[2])
 
-driver
+driver.get("https://www.nsb.lk/rates-tarriffs/exchange-rates/")
+
+nsbtable = driver.find_element(By.CLASS_NAME,"table")
+
+nsbsoup = BeautifulSoup(nsbtable.get_attribute("innerHTML"),"html.parser")
+
+nsbrows = nsbsoup.find_all("tr")
+
+print(nsbrows[2])
 
 time.sleep(10)
 
