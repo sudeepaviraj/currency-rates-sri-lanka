@@ -7,10 +7,11 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
+import json
 
 options = Options()
 
-# options.add_argument("--headless=new")
+options.add_argument("--headless=new")
 
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options)
 
@@ -39,10 +40,11 @@ def CentralBank()-> dict:
     cbslreturn = {
         "source":"CBSL",
         "sell_rate":rates[-1][2].text,
-        "buy_rate":rates[-1][1].text
+        "buy_rate":rates[-1][1].text,
+        "ref":"https://www.cbsl.gov.lk/en/rates-and-indicators/exchange-rates/daily-buy-and-sell-exchange-rates"
     }
 
-    print(cbslreturn)
+    return cbslreturn
 
 def SampathBank()->dict:
     driver.get("https://www.sampath.lk/en/exchange-rates")
@@ -58,9 +60,10 @@ def SampathBank()->dict:
     sampathreturn = {
         "source":"Sampath",
         "sell_rate":dataset[1].text,
-        "buy_rate":dataset[3].text
+        "buy_rate":dataset[3].text,
+        "ref":"https://www.sampath.lk/en/exchange-rates"
     }
-    print(sampathreturn)
+    return sampathreturn
 
 def PeoplesBank()->dict:
     driver.get("https://www.peoplesbank.lk/exchange-rates/")
@@ -71,7 +74,14 @@ def PeoplesBank()->dict:
 
     peoplerows = people.find_all("tr")
 
-    print(peoplerows[2])
+    peoplesreturn={
+        "source":"Peoples",
+        "sell_rate":peoplerows[2].find_all("td")[1].text,
+        "buy_rate":peoplerows[2].find_all("td")[0].text,
+        "ref":"https://www.peoplesbank.lk/exchange-rates/"
+    }
+
+    return peoplesreturn
 
 def NSBank()->dict:
     driver.get("https://www.nsb.lk/rates-tarriffs/exchange-rates/")
@@ -85,10 +95,11 @@ def NSBank()->dict:
     nsbreturn = {
         "source":"NSB",
         "sell_rate":nsbrows[2].find_all("td")[-1].text,
-        "buy_rate":nsbrows[2].find_all("td")[-2].text
+        "buy_rate":nsbrows[2].find_all("td")[-2].text,
+        "ref":"https://www.nsb.lk/rates-tarriffs/exchange-rates/"
     }
 
-    print(nsbreturn)
+    return nsbreturn
 
 def GoogleFinance()->dict:
     driver.get("https://www.google.com/finance/quote/USD-LKR")
@@ -98,11 +109,17 @@ def GoogleFinance()->dict:
     googlereturn = {
         "source":"Google",
         "sell_rate":finance.text,
-        "buy_rate":finance.text
+        "buy_rate":finance.text,
+        "ref":"https://www.google.com/finance/quote/USD-LKR"
     }
-    print(googlereturn)
+    return googlereturn
 
-CentralBank()
-
-time.sleep(10)
+def save():
+    google = GoogleFinance()
+    sampath = SampathBank()
+    cbsl = CentralBank()
+    nsb = NSBank()
+    peoples = PeoplesBank()
+    with open("export.json","w") as file:
+        file.write(json.dumps([google,sampath,cbsl,nsb,peoples]))
 
