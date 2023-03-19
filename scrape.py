@@ -14,9 +14,8 @@ options = Options()
 
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options)
 
-def CentralBank():
+def CentralBank()-> dict:
     driver.get("https://www.cbsl.gov.lk/en/rates-and-indicators/exchange-rates/daily-buy-and-sell-exchange-rates")
-    # assert "Python" in driver.title
     driver.switch_to.frame("iFrameResizer2")
     elem = driver.find_element(By.ID, "rangeType_range")
     elem.click()
@@ -37,9 +36,15 @@ def CentralBank():
         rows = usd.find_all("td")
         rates.append(rows[0:3])
 
-    print(("{} - {} - {}".format(rates[-1][0].text,rates[-1][1].text,rates[-1][2].text)))
+    cbslreturn = {
+        "source":"CBSL",
+        "sell_rate":rates[-1][2].text,
+        "buy_rate":rates[-1][1].text
+    }
 
-def SampathBank():
+    print(cbslreturn)
+
+def SampathBank()->dict:
     driver.get("https://www.sampath.lk/en/exchange-rates")
 
     table = driver.find_element(By.CLASS_NAME,"exch-rates")
@@ -57,7 +62,7 @@ def SampathBank():
     }
     print(sampathreturn)
 
-def PeoplesBank():
+def PeoplesBank()->dict:
     driver.get("https://www.peoplesbank.lk/exchange-rates/")
 
     peoples = driver.find_element(By.CLASS_NAME,"table")
@@ -68,7 +73,7 @@ def PeoplesBank():
 
     print(peoplerows[2])
 
-def NSBank():
+def NSBank()->dict:
     driver.get("https://www.nsb.lk/rates-tarriffs/exchange-rates/")
 
     nsbtable = driver.find_element(By.CLASS_NAME,"table")
@@ -85,9 +90,7 @@ def NSBank():
 
     print(nsbreturn)
 
-    # print(nsbrows[2])
-
-def GoogleFinance():
+def GoogleFinance()->dict:
     driver.get("https://www.google.com/finance/quote/USD-LKR")
     rate = driver.find_element(By.CLASS_NAME,"kf1m0")
     finance = BeautifulSoup(rate.get_attribute("innerHTML"),"html.parser")
@@ -99,7 +102,7 @@ def GoogleFinance():
     }
     print(googlereturn)
 
-SampathBank()
+CentralBank()
 
 time.sleep(10)
 
