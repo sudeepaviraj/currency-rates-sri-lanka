@@ -4,16 +4,17 @@ from selenium.webdriver.common.by import By
 import time
 from selenium.webdriver.support.ui import Select
 from bs4 import BeautifulSoup
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
 import json
 
-options = Options()
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
+options = Options()
 options.add_argument("--headless=new")
 
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options)
+
+driver = webdriver.Chrome(options=options,service=Service())
 
 def CentralBank()-> dict:
     driver.get("https://www.cbsl.gov.lk/en/rates-and-indicators/exchange-rates/daily-buy-and-sell-exchange-rates")
@@ -114,12 +115,26 @@ def GoogleFinance()->dict:
     }
     return googlereturn
 
+def NationsTrustBank()->dict:
+    driver.get("https://www.nationstrust.com/foreign-exchange-rates")
+    table = driver.find_element(By.CLASS_NAME,"table")
+    ntb = BeautifulSoup(table.get_attribute("innerHTML"),"html.parser")
+    ntbrows = ntb.find_all("tr")
+    ntbreturn = {
+        "source":"NTB",
+        "sell_rate":ntbrows[2].find_all("td")[-1].text,
+        "buy_rate":ntbrows[2].find_all("td")[-2].text,
+        "ref":"https://www.nationstrust.com/foreign-exchange-rates"
+    }
+    return ntbreturn
+
 def save():
     google = GoogleFinance()
     sampath = SampathBank()
     cbsl = CentralBank()
     nsb = NSBank()
     peoples = PeoplesBank()
+    ntb = NationsTrustBank()
     with open("export.json","w") as file:
-        file.write(json.dumps([google,sampath,cbsl,nsb,peoples]))
+        file.write(json.dumps([google,sampath,cbsl,nsb,peoples,ntb]))
 
