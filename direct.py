@@ -7,6 +7,39 @@ from io import StringIO, BytesIO
 import pdfplumber
 import re
 
+import csv
+from datetime import datetime
+import os
+
+def save_daily_rates(cbsl, ntb, hsbc):
+    file = "usd_rates_log.csv"
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    def parse(rate):
+        try:
+            buy, sell = rate.split("/")
+            return float(buy.strip()), float(sell.strip())
+        except:
+            return None, None
+
+    data = [
+        ("CBSL", *parse(cbsl)),
+        ("NTB", *parse(ntb)),
+        ("HSBC", *parse(hsbc)),
+    ]
+
+    file_exists = os.path.isfile(file)
+
+    with open(file, mode="a", newline="") as f:
+        writer = csv.writer(f)
+
+        # Write header once
+        if not file_exists:
+            writer.writerow(["date", "source", "buy", "sell"])
+
+        for source, buy, sell in data:
+            writer.writerow([today, source, buy, sell])
+
 # ---------------- CBSL ----------------
 def get_cbsl():
     try:
@@ -140,6 +173,7 @@ def update_rates():
     hsbc_var.set(hsbc)
 
     highlight_best(cbsl, ntb, hsbc)
+    save_daily_rates(cbsl, ntb, hsbc)
 
     root.after(60000, update_rates)
 
